@@ -14,10 +14,16 @@ Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -Confirm:$false
 
 # Enable Hyper-V (Reboot after installing)
-Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All restart-computer
+Enable-WindowsOptionalFeature -FeatureName Microsoft-Hyper-V -All -Online -NoRestart -OutVariable results
+if ($results.RestartNeeded -eq $true) {
+  Restart-Computer -Force
+}
 
 # Enable Containers (Reboot after installing)
-Enable-WindowsOptionalFeature -Online -FeatureName Containers -All restart-computer
+Enable-WindowsOptionalFeature -FeatureName Containers -All -Online -NoRestart -OutVariable results
+if ($results.RestartNeeded -eq $true) {
+  Restart-Computer -Force
+}
 
 # Download docker install script
 Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1" -OutFile install-docker-ce.ps1
@@ -35,6 +41,10 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 choco feature enable -n allowGlobalConfirmation
 
 # WSL install
+Enable-WindowsOptionalFeature -FeatureName Microsoft-Windows-Subsystem-Linux -All -Online -NoRestart -OutVariable results
+if ($results.RestartNeeded -eq $true) {
+  Restart-Computer -Force
+}
 wsl --update
 wsl --install -d ubuntu
 
