@@ -47,6 +47,7 @@ choco install 7zip
 choco install git.install
 choco install sysinternals
 choco install vscode
+choco install powershell-core
 
 # WSL install
 Enable-WindowsOptionalFeature -FeatureName Microsoft-Windows-Subsystem-Linux -All -Online -NoRestart -OutVariable results
