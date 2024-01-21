@@ -37,8 +37,16 @@ Invoke-WebRequest -UseBasicParsing "https://github.com/docker/compose/releases/d
 # Choco install
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# Choco Say Yes to all
+# Choco say yes to all
 choco feature enable -n allowGlobalConfirmation
+
+# Choso essential packages
+choco install notepadplusplus
+choco install googlechrome
+choco install 7zip
+choco install git.install
+choco install sysinternals
+choco install vscode
 
 # WSL install
 Enable-WindowsOptionalFeature -FeatureName Microsoft-Windows-Subsystem-Linux -All -Online -NoRestart -OutVariable results
