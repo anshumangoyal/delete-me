@@ -25,16 +25,6 @@ if ($results.RestartNeeded -eq $true) {
   Restart-Computer -Force
 }
 
-# Download docker install script
-Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1" -OutFile install-docker-ce.ps1
-
-# Run docker install script
-./install-docker-ce.ps1
-
-# Install docker-compose latest version
-$response = Invoke-RestMethod -Uri "https://api.github.com/repos/docker/compose/releases/latest"
-Invoke-WebRequest -UseBasicParsing "https://github.com/docker/compose/releases/download/$($response.tag_name)/docker-compose-windows-x86_64.exe" -o C:\Windows\System32\docker-compose.exe;
-
 # Choco install
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
@@ -66,3 +56,26 @@ netsh advfirewall firewall add rule name="Open Port 22 for WSL2" dir=in action=a
 
 # Install powershell tools
 Install-Module -Name VMware.PowerCLI -SkipPublisherCheck -Force -AcceptLicense
+
+# Enable WinRM (for ansible)
+Set-NetConnectionProfile -NetworkCategory Private
+
+### DOCKER SETUP ON WINDOWS ###
+# Windows docker install via powershell script
+Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1" -OutFile install-docker-ce.ps1
+./install-docker-ce.ps1
+
+# Windows docker install via downloading latest binaries
+$availableVersions = ((Invoke-WebRequest -Uri "https://download.docker.com/win/static/stable/x86_64/" -UseBasicParsing).Links | Where-Object {$_.href -like "docker*"}).href | Sort-Object -Descending
+$version = ($availableVersions | Select-String -Pattern "docker-(\d+\.\d+\.\d+).+"  -AllMatches | Select-Object -Expand Matches | %{ $_.Groups[1].Value })[0]
+Invoke-WebRequest https://download.docker.com/win/static/stable/x86_64/docker-$($version).zip -OutFile docker-$($version).zip
+Expand-Archive docker-$($version).zip -DestinationPath $Env:ProgramFiles
+&$Env:ProgramFiles\Docker\dockerd --register-service
+Start-Service docker
+
+# Install docker-compose latest version
+$response = Invoke-RestMethod -Uri "https://api.github.com/repos/docker/compose/releases/latest"
+Invoke-WebRequest -UseBasicParsing "https://github.com/docker/compose/releases/download/$($response.tag_name)/docker-compose-windows-x86_64.exe" -o C:\Windows\System32\docker-compose.exe;
+
+# Docker Containers
+docker pull mcr.microsoft.com/windows/nanoserver:ltsc2022
