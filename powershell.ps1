@@ -70,8 +70,8 @@ $availableVersions = ((Invoke-WebRequest -Uri "https://download.docker.com/win/s
 $version = ($availableVersions | Select-String -Pattern "docker-(\d+\.\d+\.\d+).+"  -AllMatches | Select-Object -Expand Matches | %{ $_.Groups[1].Value })[0]
 Invoke-WebRequest https://download.docker.com/win/static/stable/x86_64/docker-$($version).zip -OutFile docker-$($version).zip
 Expand-Archive docker-$($version).zip -DestinationPath $Env:ProgramFiles
-&$Env:ProgramFiles\Docker\dockerd --register-service
-Start-Service docker
+& $Env:ProgramFiles\Docker\dockerd --register-service --service-name docker
+Start-Service -Name docker
 
 # Install docker-compose latest version
 $response = Invoke-RestMethod -Uri "https://api.github.com/repos/docker/compose/releases/latest"
